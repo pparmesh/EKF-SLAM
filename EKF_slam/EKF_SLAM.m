@@ -150,6 +150,25 @@ end
 %==== EVAL: Plot ground truth landmarks ====
 
 % Write your code here...
+gt_vals = [3 6 3 12 7 8 7 14 11 6 11 12];
+gt_x = zeros(1,6);
+gt_y = zeros(1,6);
+est_x = zeros(1,6);
+est_y = zeros(1,6);
+est_l = x(4:end);
+
+for i = 1:6
+    gt_x(i) = gt_vals(2*i-1);
+    gt_y(i) = gt_vals(2*i);
+    est_x(i) = est_l(2*i-1);
+    est_y(i) = est_l(2*i);
+end
+hold on
+scatter(gt_x,gt_y,25,'filled');
+x_diff = (est_x - gt_x).^2;
+y_diff = (est_y - gt_y).^2;
+euclidean_dist = (x_diff+y_diff).^0.5;
+    
     
 
 %==== Close data file ====

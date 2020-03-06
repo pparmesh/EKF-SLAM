@@ -46,7 +46,7 @@ measure = measure';
 landmark = zeros(6,2);
 landmark_cov = zeros(12,12);
 idx = 1;
-measure_cov = diag([sig_r2, sig_beta2]);
+measure_cov_fl = diag([sig_r2, sig_beta2]);
 
 % Iterate over landmark measurements to intialize lx, ly
 for i = 1:6
@@ -69,7 +69,7 @@ P = [pose_cov zeros(3, 2*k) ; zeros(2*k, 3) landmark_cov];
 
 %==== Plot initial state and conariance ====
 last_x = x;
-%drawTrajAndMap(x, last_x, P, 0);
+drawTrajAndMap(x, last_x, P, 0);
 
 Fx = zeros(3,3+2*k);
 Fx(1,1) = 1;
@@ -97,7 +97,7 @@ while ischar(tline)
     
     
     %==== Draw predicted state x_pre[] and covariance P_pre[] ====
-    %drawTrajPre(x_pre, P_pre);
+    drawTrajPre(x_pre, P_pre);
     
     %==== Read measurement data ====
     tline = fgets(fid);
@@ -115,7 +115,7 @@ while ischar(tline)
     
     measured_landmarks = reshape(arr, [2,k]);
     measured_landmarks = measured_landmarks';
-    measure_landmarks = fliplr(measured_landmarks);
+    measured_landmarks = fliplr(measured_landmarks);
     
     Fxj = zeros(5, 2*k+3);
     Fxj(1:3,1:3) = eye(3);
@@ -130,10 +130,13 @@ while ischar(tline)
         Hi = (1/q)*[-sqrt(q)*del(1), -sqrt(q)*del(2), 0, sqrt(q)*del(1), sqrt(q)*del(2); del(2), -del(1), -q, -del(2), del(1)]*Fxj;
         
         % Calculate Kalman Gain
-        Ki = P_pre*Hi'*inv(Hi*P_pre*Hi' + measure_cov);
-        x_pre = x_pre + Ki*(measured_landmarks(i) - pred_meas);
+        Ki = P_pre*Hi'*inv(Hi*P_pre*Hi' + measure_cov_fl);
+        x_pre = x_pre + Ki*([measured_landmarks(i,1);measured_landmarks(i,2)] - pred_meas);
+        P_pre = (eye(15) -Ki*Hi)*P_pre;
     end
-        
+    x = x_pre;
+    P = P_pre;
+       
     
     %==== Plot ====   
     drawTrajAndMap(x, last_x, P, t);
@@ -147,6 +150,24 @@ end
 %==== EVAL: Plot ground truth landmarks ====
 
 % Write your code here...
+gt_vals = [3 6 3 12 7 8 7 14 11 6 11 12];
+gt_x = zeros(1,6);
+gt_y = zeros(1,6);
+est_x = zeros(1,6);
+est_y = zeros(1,6);
+est_l = x(4:end);
+
+for i = 1:6
+    gt_x(i) = gt_vals(2*i-1);
+    gt_y(i) = gt_vals(2*i);
+    est_x(i) = est_l(2*i-1);
+    est_y(i) = est_l(2*i);
+end
+hold on
+scatter(gt_x,gt_y,25,'filled');
+est_x - gt_x_
+
+    
     
 
 %==== Close data file ====
